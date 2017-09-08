@@ -1,6 +1,9 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var scrape = require('website-scraper');
+var http = require('http');
+
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -26,16 +29,70 @@ exports.initialize = function(pathsObj) {
 // modularize your code. Keep it clean!
 
 exports.readListOfUrls = function(callback) {
+  fs.readFile(exports.paths.list, function (err, data) {
+    if(err) {
+      console.log(err)
+    }
+    // console.log('data', data.toString().split('\n'))
+    // console.log('type of data is: ', typeof data)
+    var dataArray = data.toString().split('\n');
+    callback(dataArray);
+  })
+
 };
 
 exports.isUrlInList = function(url, callback) {
+  fs.readFile(exports.paths.list, function (err, data) {
+    if (err) {
+      console.log(err);
+    }
+    if (data.indexOf(url) >= 0){
+      callback(true);
+    } else {
+      callback(false);
+    }
+  });
 };
 
 exports.addUrlToList = function(url, callback) {
+  fs.appendFile(exports.paths.list, url + '\n', (err) => {
+    callback()
+  })
 };
 
 exports.isUrlArchived = function(url, callback) {
+  if(fs.existsSync(exports.paths.archivedSites + '/'+ url)) {
+    callback(true)
+  } else {
+    callback(false);
+  }
 };
 
 exports.downloadUrls = function(urls) {
+  var path = exports.paths.archivedSites + '/';
+
+  console.log(urls)
+
+  urls.forEach(function(url) {
+    var rawData ='';
+    console.log(path + url);
+    var file = fs.createWriteStream(path + url);
+    var request = http.get(url, function(res) {
+      console.log('pikachu')
+      res.on('data', function(data) {
+        console.log(data);
+      })
+    });
+    console.log('request: ', request)
+  })
+
+  // var download = function(url, dest, cb) {
+  // var file = fs.createWriteStream(dest);
+  // var request = http.get(url, function(response) {
+  //   response.pipe(file);
+  //   file.on('finish', function() {
+  //     file.close(cb);
+  //   });
+  // });
+// }
 };
