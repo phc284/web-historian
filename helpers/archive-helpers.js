@@ -55,6 +55,7 @@ exports.isUrlInList = function(url, callback) {
 };
 
 exports.addUrlToList = function(url, callback) {
+  console.log('Add url ****' + url);
   fs.appendFile(exports.paths.list, url + '\n', (err) => {
     callback()
   })
@@ -71,19 +72,20 @@ exports.isUrlArchived = function(url, callback) {
 exports.downloadUrls = function(urls) {
   var path = exports.paths.archivedSites + '/';
 
-  console.log(urls)
 
   urls.forEach(function(url) {
     var rawData ='';
-    console.log(path + url);
     var file = fs.createWriteStream(path + url);
-    var request = http.get(url, function(res) {
-      console.log('pikachu')
+    var temp = 'http://' + url;
+    var request = http.get(temp, function(res) {
+      var webpage = '';
       res.on('data', function(data) {
-        console.log(data);
+        webpage = data.toString();
+      })
+      res.on('end', () => {
+        fs.appendFile(path + url, webpage);
       })
     });
-    console.log('request: ', request)
   })
 
   // var download = function(url, dest, cb) {
