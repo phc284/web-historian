@@ -3,6 +3,7 @@ var path = require('path');
 var _ = require('underscore');
 var scrape = require('website-scraper');
 var http = require('http');
+var request = require('request');
 
 
 /*
@@ -42,16 +43,22 @@ exports.readListOfUrls = function(callback) {
 };
 
 exports.isUrlInList = function(url, callback) {
-  fs.readFile(exports.paths.list, function (err, data) {
-    if (err) {
-      console.log(err);
-    }
-    if (data.indexOf(url) >= 0){
-      callback(true);
-    } else {
-      callback(false);
-    }
-  });
+  console.log('url', url)
+  if(url !== undefined) {
+    fs.readFile(exports.paths.list, function (err, data) {
+      if (err) {
+        console.log(err);
+      }
+      console.log('path list: ', exports.paths.list)
+      console.log('data string', data.toString());
+      console.log("data index", data.toString().indexOf(url))
+      if (data.toString().indexOf(url) >= 0){
+        callback(true);
+      } else {
+        callback(false);
+      }
+    });
+  }
 };
 
 exports.addUrlToList = function(url, callback) {
@@ -74,18 +81,25 @@ exports.downloadUrls = function(urls) {
 
 
   urls.forEach(function(url) {
-    var rawData ='';
-    var file = fs.createWriteStream(path + url);
-    var temp = 'http://' + url;
-    var request = http.get(temp, function(res) {
-      var webpage = '';
-      res.on('data', function(data) {
-        webpage = data.toString();
-      })
-      res.on('end', () => {
-        fs.appendFile(path + url, webpage);
-      })
-    });
+    exports.isUrlArchived(url, function (bool) {
+      if (!bool) {
+        var rawData ='';
+        var file = fs.createWriteStream(path + url);
+        var temp = 'http://' + url;
+        // var request = http.get(temp, function(res) {
+        //   var webpage = '';
+        //   res.on('data', function(data) {
+        //     webpage = data.toString();
+        //   })
+        //   res.on('end', () => {
+        //     fs.appendFile(path + url, webpage);
+        //   })
+        // });
+        request(temp, function(err, res, body) {
+          fs.appendFile(path + url, body);
+        });
+      }
+    })
   })
 
   // var download = function(url, dest, cb) {
